@@ -88,11 +88,12 @@
         <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 shadow-2xl">
             <h3 class="text-lg font-bold mb-1 flex items-center space-x-2">
                 <i class="fa-solid fa-cart-shopping text-red-500"></i>
-                <span>Add Purchase</span>
+                <span id="expense-modal-title">Add Purchase</span>
             </h3>
             <p class="text-xs text-slate-400 mb-4" id="expense-modal-subtitle">For Recipient</p>
             <form onsubmit="handleSaveExpense(event)" class="space-y-4">
                 <input type="hidden" id="expense-recipient-id">
+                <input type="hidden" id="expense-id">
                 <div>
                     <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Item Description</label>
                     <input type="text" id="expense-item" required placeholder="e.g. Lego Set" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
@@ -107,7 +108,7 @@
                 </div>
                 <div class="flex space-x-3 pt-2">
                     <button type="button" onclick="closeModals()" class="flex-1 bg-slate-700 py-2.5 rounded-xl font-medium">Cancel</button>
-                    <button type="submit" class="flex-1 bg-red-600 py-2.5 rounded-xl font-semibold shadow">Add Item</button>
+                    <button type="submit" id="expense-submit" class="flex-1 bg-red-600 py-2.5 rounded-xl font-semibold shadow">Add Item</button>
                 </div>
             </form>
         </div>
@@ -233,7 +234,28 @@
 
         function openAddExpenseModal(id) {
             const rec = state.recipients.find(r => r.id === id);
+            document.getElementById('expense-id').value = '';
             document.getElementById('expense-recipient-id').value = id;
+            document.getElementById('expense-item').value = '';
+            document.getElementById('expense-cost').value = '';
+            document.getElementById('expense-buyer').value = '';
+            document.getElementById('expense-modal-title').innerText = 'Add Purchase';
+            document.getElementById('expense-submit').innerText = 'Add Item';
+            document.getElementById('expense-modal-subtitle').innerText = `For ${rec ? rec.name : 'Recipient'}`;
+            document.getElementById('expense-modal').classList.remove('hidden');
+        }
+
+        function openEditExpenseModal(id) {
+            const exp = state.expenses.find(e => e.id === id);
+            if (!exp) return;
+            const rec = state.recipients.find(r => r.id === exp.recipientId);
+            document.getElementById('expense-id').value = exp.id;
+            document.getElementById('expense-recipient-id').value = exp.recipientId;
+            document.getElementById('expense-item').value = exp.item || '';
+            document.getElementById('expense-cost').value = Number(exp.cost) || 0;
+            document.getElementById('expense-buyer').value = exp.buyer || '';
+            document.getElementById('expense-modal-title').innerText = 'Edit Purchase';
+            document.getElementById('expense-submit').innerText = 'Save';
             document.getElementById('expense-modal-subtitle').innerText = `For ${rec ? rec.name : 'Recipient'}`;
             document.getElementById('expense-modal').classList.remove('hidden');
         }
@@ -413,6 +435,7 @@
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <span class="font-bold text-white">$${(Number(exp.cost) || 0).toFixed(2)}</span>
+                                    <button data-action="edit-expense" data-id="${escapeHtml(exp.id)}" title="Edit gift" class="text-slate-500 hover:text-white p-1"><i class="fa-solid fa-pen"></i></button>
                                     <button data-action="delete-expense" data-id="${escapeHtml(exp.id)}" class="text-slate-500 hover:text-red-400 p-1"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                             </div>
@@ -444,6 +467,7 @@
             if (!btn) return;
             const id = btn.dataset.id;
             if (btn.dataset.action === 'add-gift') openAddExpenseModal(id);
+            if (btn.dataset.action === 'edit-expense') openEditExpenseModal(id);
             if (btn.dataset.action === 'delete-expense') deleteExpense(id);
             if (btn.dataset.action === 'edit-recipient') openEditRecipientModal(id);
             if (btn.dataset.action === 'delete-recipient') deleteRecipient(id);
@@ -485,6 +509,7 @@
         async function handleSaveExpense(e) {
             e.preventDefault();
             const form = e.target;
+            const id = document.getElementById('expense-id').value;
             const recipientId = document.getElementById('expense-recipient-id').value;
             const item = document.getElementById('expense-item').value.trim();
             const cost = parseFloat(document.getElementById('expense-cost').value) || 0;
@@ -492,7 +517,16 @@
             if (!item) return;
 
             try {
-                if (useFirebase) {
+                if (id) {
+                    // Editing an existing gift
+                    if (useFirebase) {
+                        await fs.updateDoc(fs.doc(db, 'expenses', id), { item, cost, buyer });
+                    } else {
+                        const exp = state.expenses.find(x => x.id === id);
+                        if (exp) { exp.item = item; exp.cost = cost; exp.buyer = buyer; }
+                        saveLocalData();
+                    }
+                } else if (useFirebase) {
                     await fs.addDoc(fs.collection(db, 'expenses'), { recipientId, item, cost, buyer });
                 } else {
                     state.expenses.push({ id: 'exp_' + Date.now(), recipientId, item, cost, buyer });
