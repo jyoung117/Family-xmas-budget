@@ -16,5 +16,337 @@
         <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2">
                 <div class="bg-red-600 text-white p-2 rounded-xl shadow">
-                    <i class="fa-
-                        
+                    <i class="fa-solid fa-gift text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Xmas Budget</h1>
+                    <p class="text-xs text-slate-400" id="sync-status">Checking Connection...</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="openPwaModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 p-2 rounded-lg text-sm" title="Install App">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                </button>
+                <button onclick="openSettingsModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 p-2 rounded-lg text-sm" title="Firebase Settings">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-md mx-auto w-full px-4 py-6 flex-1 pb-24">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow">
+                <p class="text-xs text-slate-400 uppercase font-semibold">Total Budget</p>
+                <p class="text-2xl font-bold text-white mt-1" id="total-budget-display">$0.00</p>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow">
+                <p class="text-xs text-slate-400 uppercase font-semibold">Total Spent</p>
+                <p class="text-2xl font-bold text-red-400 mt-1" id="total-spent-display">$0.00</p>
+            </div>
+        </div>
+
+        <!-- Action Button -->
+        <button onclick="openAddRecipientModal()" class="w-full bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center space-x-2 mb-6">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Add Family Member / Recipient</span>
+        </button>
+
+        <!-- Recipients List -->
+        <div id="recipients-container" class="space-y-4"></div>
+    </main>
+
+    <!-- Add Recipient Modal -->
+    <div id="recipient-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 shadow-2xl">
+            <h3 class="text-lg font-bold mb-4 flex items-center space-x-2">
+                <i class="fa-solid fa-user text-red-500"></i>
+                <span>Add Recipient</span>
+            </h3>
+            <form onsubmit="handleSaveRecipient(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Name</label>
+                    <input type="text" id="recipient-name" required placeholder="e.g. Daughter" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Budget Amount ($)</label>
+                    <input type="number" step="0.01" id="recipient-budget" required placeholder="150.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="closeModals()" class="flex-1 bg-slate-700 py-2.5 rounded-xl font-medium">Cancel</button>
+                    <button type="submit" class="flex-1 bg-red-600 py-2.5 rounded-xl font-semibold shadow">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="expense-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 shadow-2xl">
+            <h3 class="text-lg font-bold mb-1 flex items-center space-x-2">
+                <i class="fa-solid fa-cart-shopping text-red-500"></i>
+                <span>Add Purchase</span>
+            </h3>
+            <p class="text-xs text-slate-400 mb-4" id="expense-modal-subtitle">For Recipient</p>
+            <form onsubmit="handleSaveExpense(event)" class="space-y-4">
+                <input type="hidden" id="expense-recipient-id">
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Item Description</label>
+                    <input type="text" id="expense-item" required placeholder="e.g. Lego Set" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Cost ($)</label>
+                    <input type="number" step="0.01" id="expense-cost" required placeholder="49.99" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Purchased By</label>
+                    <input type="text" id="expense-buyer" placeholder="Mom / Dad" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="closeModals()" class="flex-1 bg-slate-700 py-2.5 rounded-xl font-medium">Cancel</button>
+                    <button type="submit" class="flex-1 bg-red-600 py-2.5 rounded-xl font-semibold shadow">Add Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-bold mb-2 flex items-center space-x-2">
+                <i class="fa-solid fa-gear text-red-500"></i>
+                <span>Firebase Sync Settings</span>
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Paste your Firebase credentials below to connect both phones.</p>
+            <form onsubmit="handleSaveSettings(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">API Key</label>
+                    <input type="text" id="cfg-apikey" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Auth Domain</label>
+                    <input type="text" id="cfg-authdomain" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Project ID</label>
+                    <input type="text" id="cfg-projectid" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">App ID</label>
+                    <input type="text" id="cfg-appid" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                </div>
+                <div class="flex space-x-3 pt-3">
+                    <button type="button" onclick="closeModals()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2.5 rounded-xl font-medium text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl font-semibold text-sm shadow">Save & Connect</button>
+                </div>
+            </form>
+            <button onclick="clearFirebaseConfig()" class="w-full mt-3 bg-slate-900 text-red-400 border border-slate-700 py-2 rounded-xl text-xs font-semibold">Clear Keys</button>
+        </div>
+    </div>
+
+    <!-- PWA Modal -->
+    <div id="pwa-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 shadow-2xl">
+            <h3 class="text-lg font-bold mb-3 flex items-center space-x-2">
+                <i class="fa-solid fa-mobile-screen-button text-red-500"></i>
+                <span>Add to Home Screen</span>
+            </h3>
+            <p class="text-xs text-slate-300 mb-3">Use your browser's menu and select <b>"Add to Home Screen"</b>.</p>
+            <button onclick="closeModals()" class="w-full bg-slate-700 py-2.5 rounded-xl font-semibold text-sm">Got It</button>
+        </div>
+    </div>
+
+    <!-- Live Cloud Sync Engine -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        let db = null;
+        let useFirebase = false;
+        let state = { recipients: [], expenses: [] };
+
+        // Global functions attached to window for HTML button clicks
+        window.openAddRecipientModal = () => document.getElementById('recipient-modal').classList.remove('hidden');
+        window.openPwaModal = () => document.getElementById('pwa-modal').classList.remove('hidden');
+        window.closeModals = () => document.querySelectorAll('[id$="-modal"]').forEach(m => m.classList.add('hidden'));
+
+        window.openSettingsModal = () => {
+            const saved = localStorage.getItem('xmas_fb_config');
+            if (saved) {
+                try {
+                    const c = JSON.parse(saved);
+                    document.getElementById('cfg-apikey').value = c.apiKey || '';
+                    document.getElementById('cfg-authdomain').value = c.authDomain || '';
+                    document.getElementById('cfg-projectid').value = c.projectId || '';
+                    document.getElementById('cfg-appid').value = c.appId || '';
+                } catch(e) {}
+            }
+            document.getElementById('settings-modal').classList.remove('hidden');
+        };
+
+        window.openAddExpenseModal = (id, name) => {
+            document.getElementById('expense-recipient-id').value = id;
+            document.getElementById('expense-modal-subtitle').innerText = `For ${name}`;
+            document.getElementById('expense-modal').classList.remove('hidden');
+        };
+
+        // Initialize Firebase if keys are stored
+        const savedConfig = localStorage.getItem('xmas_fb_config');
+        if (savedConfig) {
+            try {
+                const config = JSON.parse(savedConfig);
+                if (config.apiKey && config.projectId) {
+                    const app = initializeApp(config);
+                    db = getFirestore(app);
+                    useFirebase = true;
+                    
+                    document.getElementById('sync-status').innerText = "Cloud Sync Active (Live)";
+                    document.getElementById('sync-status').className = "text-xs text-emerald-400 font-semibold";
+
+                    // Live listener for recipients
+                    onSnapshot(collection(db, "recipients"), (snapshot) => {
+                        state.recipients = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                        render();
+                    });
+
+                    // Live listener for expenses
+                    onSnapshot(collection(db, "expenses"), (snapshot) => {
+                        state.expenses = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                        render();
+                    });
+                } else {
+                    enableLocalStorageMode();
+                }
+            } catch(e) {
+                console.error("Firebase Init Error:", e);
+                enableLocalStorageMode();
+            }
+        } else {
+            enableLocalStorageMode();
+        }
+
+        function enableLocalStorageMode() {
+            useFirebase = false;
+            document.getElementById('sync-status').innerText = "Local Mode (Keys Needed)";
+            document.getElementById('sync-status').className = "text-xs text-amber-400 font-semibold";
+            state.recipients = JSON.parse(localStorage.getItem('xmas_recipients')) || [
+                { id: '1', name: 'Daughter', budget: 150 },
+                { id: '2', name: 'Sister-in-Law', budget: 50 }
+            ];
+            state.expenses = JSON.parse(localStorage.getItem('xmas_expenses')) || [
+                { id: 'e1', recipientId: '1', item: 'Lego Set', cost: 45.00, buyer: 'Dad' }
+            ];
+            render();
+        }
+
+        function saveLocalData() {
+            if (!useFirebase) {
+                localStorage.setItem('xmas_recipients', JSON.stringify(state.recipients));
+                localStorage.setItem('xmas_expenses', JSON.stringify(state.expenses));
+                render();
+            }
+        }
+
+        window.render = function() {
+            const container = document.getElementById('recipients-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let totalBudget = 0;
+            let totalSpent = 0;
+
+            state.recipients.forEach(rec => {
+                const recExpenses = state.expenses.filter(e => e.recipientId === rec.id);
+                const spent = recExpenses.reduce((sum, e) => sum + Number(e.cost), 0);
+                const budget = Number(rec.budget);
+                const remaining = budget - spent;
+
+                totalBudget += budget;
+                totalSpent += spent;
+
+                const pct = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
+                let barColor = 'bg-emerald-500';
+                if (pct > 85) barColor = 'bg-amber-500';
+                if (pct >= 100) barColor = 'bg-red-500';
+
+                let html = `
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow-md">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-bold text-base text-white">${rec.name}</h3>
+                                <p class="text-xs text-slate-400">Budget: $${budget.toFixed(2)}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-lg font-bold ${remaining < 0 ? 'text-red-400' : 'text-emerald-400'}">$${remaining.toFixed(2)}</span>
+                                <p class="text-[10px] uppercase text-slate-400">Remaining</p>
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-3">
+                            <div class="${barColor} h-full transition-all duration-300" style="width: ${pct}%"></div>
+                        </div>
+                        <div class="space-y-2 mb-3">
+                `;
+
+                if (recExpenses.length === 0) {
+                    html += `<p class="text-xs text-slate-500 italic">No gifts added yet.</p>`;
+                } else {
+                    recExpenses.forEach(exp => {
+                        html += `
+                            <div class="flex justify-between items-center bg-slate-900/60 px-3 py-2 rounded-xl text-xs">
+                                <div>
+                                    <span class="font-medium text-slate-200">${exp.item}</span>
+                                    <span class="text-[10px] text-slate-400 ml-1">(${exp.buyer})</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-bold text-white">$${Number(exp.cost).toFixed(2)}</span>
+                                    <button onclick="deleteExpense('${exp.id}')" class="text-slate-500 hover:text-red-400"><i class="fa-solid fa-trash-can"></i></button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `
+                        </div>
+                        <div class="flex space-x-2 pt-2 border-t border-slate-700/60">
+                            <button onclick="openAddExpenseModal('${rec.id}', '${rec.name}')" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i><span>Add Gift</span>
+                            </button>
+                            <button onclick="deleteRecipient('${rec.id}')" class="bg-slate-700/50 hover:bg-red-900/40 text-slate-400 hover:text-red-300 px-3 py-2 rounded-xl text-xs"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+
+            document.getElementById('total-budget-display').innerText = `$${totalBudget.toFixed(2)}`;
+            document.getElementById('total-spent-display').innerText = `$${totalSpent.toFixed(2)}`;
+        };
+
+        window.handleSaveRecipient = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('recipient-name').value;
+            const budget = parseFloat(document.getElementById('recipient-budget').value);
+
+            if (useFirebase) {
+                await addDoc(collection(db, "recipients"), { name, budget });
+            } else {
+                state.recipients.push({ id: 'rec_' + Date.now(), name, budget });
+                saveLocalData();
+            }
+            closeModals();
+            e.target.reset();
+        };
+
+        window.handleSaveExpense = async function(e) {
+            e.preventDefault();
+            const recipientId = document.getElementById('expense-recipient-id').value;
+            const item = document.getElementById('expense-item').value;
+            const cost = parseFloat(document.getElementById('expense-cost').value);
+            const buyer = document.getElementById('expense-buyer').value || 'Family';
+
+            if (useFirebase) {
+                await addDoc(collection(db, "expenses"), { recipientId, item, cost, buyer });
+ 
