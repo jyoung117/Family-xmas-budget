@@ -4,15 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Christmas Budget</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
 
@@ -25,23 +20,19 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight">Xmas Budget</h1>
-                    <p class="text-xs text-slate-400" id="sync-status">Local Storage Mode</p>
+                    <p class="text-xs text-slate-400" id="sync-status">Local Mode (Ready)</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2">
-                <button onclick="openPwaModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 p-2 rounded-lg text-sm" title="Install App">
+                <button onclick="openPwaModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 p-2 rounded-lg text-sm">
                     <i class="fa-solid fa-mobile-screen-button"></i>
-                </button>
-                <button onclick="openSettingsModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 p-2 rounded-lg text-sm" title="Firebase Settings">
-                    <i class="fa-solid fa-gear"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Container -->
+    <!-- Main Content -->
     <main class="max-w-md mx-auto w-full px-4 py-6 flex-1 pb-24">
-        
         <!-- Summary Cards -->
         <div class="grid grid-cols-2 gap-3 mb-6">
             <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow">
@@ -55,15 +46,13 @@
         </div>
 
         <!-- Action Button -->
-        <button onclick="openAddRecipientModal()" class="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center space-x-2 mb-6 transition-all">
+        <button onclick="openAddRecipientModal()" class="w-full bg-gradient-to-r from-red-600 to-rose-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center space-x-2 mb-6">
             <i class="fa-solid fa-user-plus"></i>
             <span>Add Family Member / Recipient</span>
         </button>
 
         <!-- Recipients List -->
-        <div id="recipients-container" class="space-y-4">
-            <!-- Dynamically populated -->
-        </div>
+        <div id="recipients-container" class="space-y-4"></div>
     </main>
 
     <!-- Add Recipient Modal -->
@@ -73,18 +62,18 @@
                 <i class="fa-solid fa-user text-red-500"></i>
                 <span>Add Recipient</span>
             </h3>
-            <form id="recipient-form" onsubmit="handleSaveRecipient(event)" class="space-y-4">
+            <form onsubmit="handleSaveRecipient(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Name</label>
-                    <input type="text" id="recipient-name" required placeholder="e.g. Daughter, Sister-in-law" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
+                    <input type="text" id="recipient-name" required placeholder="e.g. Daughter" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
                 </div>
                 <div>
                     <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Budget Amount ($)</label>
                     <input type="number" step="0.01" id="recipient-budget" required placeholder="150.00" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
                 </div>
                 <div class="flex space-x-3 pt-2">
-                    <button type="button" onclick="closeModals()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2.5 rounded-xl font-medium">Cancel</button>
-                    <button type="submit" class="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl font-semibold shadow">Save</button>
+                    <button type="button" onclick="closeModals()" class="flex-1 bg-slate-700 py-2.5 rounded-xl font-medium">Cancel</button>
+                    <button type="submit" class="flex-1 bg-red-600 py-2.5 rounded-xl font-semibold shadow">Save</button>
                 </div>
             </form>
         </div>
@@ -98,7 +87,7 @@
                 <span>Add Purchase</span>
             </h3>
             <p class="text-xs text-slate-400 mb-4" id="expense-modal-subtitle">For Recipient</p>
-            <form id="expense-form" onsubmit="handleSaveExpense(event)" class="space-y-4">
+            <form onsubmit="handleSaveExpense(event)" class="space-y-4">
                 <input type="hidden" id="expense-recipient-id">
                 <div>
                     <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Item Description</label>
@@ -113,143 +102,44 @@
                     <input type="text" id="expense-buyer" placeholder="Mom / Dad" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
                 </div>
                 <div class="flex space-x-3 pt-2">
-                    <button type="button" onclick="closeModals()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2.5 rounded-xl font-medium">Cancel</button>
-                    <button type="submit" class="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl font-semibold shadow">Add Item</button>
+                    <button type="button" onclick="closeModals()" class="flex-1 bg-slate-700 py-2.5 rounded-xl font-medium">Cancel</button>
+                    <button type="submit" class="flex-1 bg-red-600 py-2.5 rounded-xl font-semibold shadow">Add Item</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h3 class="text-lg font-bold mb-2 flex items-center space-x-2">
-                <i class="fa-solid fa-gear text-red-500"></i>
-                <span>Firebase Sync Settings</span>
-            </h3>
-            <p class="text-xs text-slate-400 mb-4">Paste your Firebase credentials below to enable real-time cloud sync across devices.</p>
-            <form onsubmit="handleSaveSettings(event)" class="space-y-3">
-                <div>
-                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">API Key</label>
-                    <input type="text" id="cfg-apikey" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div>
-                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Auth Domain</label>
-                    <input type="text" id="cfg-authdomain" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div>
-                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Project ID</label>
-                    <input type="text" id="cfg-projectid" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div>
-                    <label class="block text-xs uppercase font-bold text-slate-400 mb-1">App ID</label>
-                    <input type="text" id="cfg-appid" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                </div>
-                <div class="flex space-x-3 pt-3">
-                    <button type="button" onclick="closeModals()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2.5 rounded-xl font-medium text-sm">Cancel</button>
-                    <button type="submit" class="flex-1 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl font-semibold text-sm shadow">Save & Connect</button>
-                </div>
-            </form>
-            <button onclick="clearFirebaseConfig()" class="w-full mt-3 bg-slate-900 text-red-400 border border-slate-700 py-2 rounded-xl text-xs font-semibold">Switch Back to Local Storage</button>
-        </div>
-    </div>
-
-    <!-- PWA Instructions Modal -->
+    <!-- PWA Modal -->
     <div id="pwa-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 shadow-2xl">
             <h3 class="text-lg font-bold mb-3 flex items-center space-x-2">
                 <i class="fa-solid fa-mobile-screen-button text-red-500"></i>
                 <span>Add to Home Screen</span>
             </h3>
-            <div class="space-y-3 text-sm text-slate-300">
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                    <p class="font-bold text-white mb-1"><i class="fa-brands fa-apple mr-1"></i> iPhone (Safari)</p>
-                    <p class="text-xs text-slate-400">Tap the Share button <i class="fa-solid fa-arrow-up-from-bracket inline"></i> at the bottom of Safari, then select <b>"Add to Home Screen"</b>.</p>
-                </div>
-                <div class="bg-slate-900 p-3 rounded-xl border border-slate-700">
-                    <p class="font-bold text-white mb-1"><i class="fa-brands fa-android mr-1"></i> Android (Chrome)</p>
-                    <p class="text-xs text-slate-400">Tap the three dots <i class="fa-solid fa-ellipsis-vertical inline"></i> in the top right, then select <b>"Add to Home screen"</b> or <b>"Install app"</b>.</p>
-                </div>
-            </div>
-            <button onclick="closeModals()" class="w-full mt-4 bg-slate-700 hover:bg-slate-600 py-2.5 rounded-xl font-semibold text-sm">Got It</button>
+            <p class="text-xs text-slate-300 mb-3">Use your browser's menu (Share button on iPhone, three dots on Android) and select <b>"Add to Home Screen"</b>.</p>
+            <button onclick="closeModals()" class="w-full bg-slate-700 py-2.5 rounded-xl font-semibold text-sm">Got It</button>
         </div>
     </div>
 
-    <!-- App Logic Script -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        let db = null;
-        let unsubscribe = null;
-        let useFirebase = false;
-
+    <!-- Core App Logic -->
+    <script>
         let state = {
-            recipients: [],
-            expenses: []
-        };
-
-        // Load config from LocalStorage if present
-        const savedConfig = localStorage.getItem('xmas_fb_config');
-        if (savedConfig) {
-            try {
-                const config = JSON.parse(savedConfig);
-                initFirebase(config);
-            } catch(e) { console.error(e); }
-        } else {
-            loadLocalStorageFallback();
-        }
-
-        function initFirebase(config) {
-            try {
-                const app = initializeApp(config);
-                db = getFirestore(app);
-                useFirebase = true;
-                document.getElementById('sync-status').innerText = "Cloud Sync Active (Live)";
-                document.getElementById('sync-status').className = "text-xs text-emerald-400 font-semibold";
-
-                // Listen to recipients
-                unsubscribe = onSnapshot(collection(db, "recipients"), (snapshot) => {
-                    state.recipients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    render();
-                });
-
-                // Listen to expenses
-                onSnapshot(collection(db, "expenses"), (snapshot) => {
-                    state.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    render();
-                });
-            } catch(e) {
-                alert("Failed to connect to Firebase. Check your config keys.");
-                clearFirebaseConfig();
-            }
-        }
-
-        function loadLocalStorageFallback() {
-            useFirebase = false;
-            document.getElementById('sync-status').innerText = "Local Storage Mode";
-            document.getElementById('sync-status').className = "text-xs text-slate-400";
-            const localRec = localStorage.getItem('xmas_recipients');
-            const localExp = localStorage.getItem('xmas_expenses');
-            state.recipients = localRec ? JSON.parse(localRec) : [
+            recipients: JSON.parse(localStorage.getItem('xmas_recipients')) || [
                 { id: '1', name: 'Daughter', budget: 150 },
                 { id: '2', name: 'Sister-in-Law', budget: 50 }
-            ];
-            state.expenses = localExp ? JSON.parse(localExp) : [
+            ],
+            expenses: JSON.parse(localStorage.getItem('xmas_expenses')) || [
                 { id: 'e1', recipientId: '1', item: 'Lego Set', cost: 45.00, buyer: 'Dad' }
-            ];
+            ]
+        };
+
+        function saveAndRender() {
+            localStorage.setItem('xmas_recipients', JSON.stringify(state.recipients));
+            localStorage.setItem('xmas_expenses', JSON.stringify(state.expenses));
             render();
         }
 
-        function saveLocalData() {
-            if (!useFirebase) {
-                localStorage.setItem('xmas_recipients', JSON.stringify(state.recipients));
-                localStorage.setItem('xmas_expenses', JSON.stringify(state.expenses));
-                render();
-            }
-        }
-
-        window.render = function() {
+        function render() {
             const container = document.getElementById('recipients-container');
             container.innerHTML = '';
 
@@ -282,13 +172,9 @@
                                 <p class="text-[10px] uppercase text-slate-400">Remaining</p>
                             </div>
                         </div>
-
-                        <!-- Progress Bar -->
                         <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-3">
                             <div class="${barColor} h-full transition-all duration-300" style="width: ${pct}%"></div>
                         </div>
-
-                        <!-- Expenses Sublist -->
                         <div class="space-y-2 mb-3">
                 `;
 
@@ -300,7 +186,7 @@
                             <div class="flex justify-between items-center bg-slate-900/60 px-3 py-2 rounded-xl text-xs">
                                 <div>
                                     <span class="font-medium text-slate-200">${exp.item}</span>
-                                    <span class="text-[10px] text-slate-400 ml-1">(${exp.buyer || 'Family'})</span>
+                                    <span class="text-[10px] text-slate-400 ml-1">(${exp.buyer})</span>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <span class="font-bold text-white">$${Number(exp.cost).toFixed(2)}</span>
@@ -326,24 +212,55 @@
 
             document.getElementById('total-budget-display').innerText = `$${totalBudget.toFixed(2)}`;
             document.getElementById('total-spent-display').innerText = `$${totalSpent.toFixed(2)}`;
-        };
+        }
 
-        window.openAddRecipientModal = () => document.getElementById('recipient-modal').classList.remove('hidden');
-        window.openPwaModal = () => document.getElementById('pwa-modal').classList.remove('hidden');
-        window.openSettingsModal = () => {
-            const saved = localStorage.getItem('xmas_fb_config');
-            if (saved) {
-                const c = JSON.parse(saved);
-                document.getElementById('cfg-apikey').value = c.apiKey || '';
-                document.getElementById('cfg-authdomain').value = c.authDomain || '';
-                document.getElementById('cfg-projectid').value = c.projectId || '';
-                document.getElementById('cfg-appid').value = c.appId || '';
+        function openAddRecipientModal() { document.getElementById('recipient-modal').classList.remove('hidden'); }
+        function openPwaModal() { document.getElementById('pwa-modal').classList.remove('hidden'); }
+        function closeModals() { document.querySelectorAll('[id$="-modal"]').forEach(m => m.classList.add('hidden')); }
+        
+        function openAddExpenseModal(id, name) {
+            document.getElementById('expense-recipient-id').value = id;
+            document.getElementById('expense-modal-subtitle').innerText = `For ${name}`;
+            document.getElementById('expense-modal').classList.remove('hidden');
+        }
+
+        function handleSaveRecipient(e) {
+            e.preventDefault();
+            const name = document.getElementById('recipient-name').value;
+            const budget = parseFloat(document.getElementById('recipient-budget').value);
+            state.recipients.push({ id: 'rec_' + Date.now(), name, budget });
+            saveAndRender();
+            document.getElementById('recipient-modal').classList.add('hidden');
+            e.target.reset();
+        }
+
+        function handleSaveExpense(e) {
+            e.preventDefault();
+            const recipientId = document.getElementById('expense-recipient-id').value;
+            const item = document.getElementById('expense-item').value;
+            const cost = parseFloat(document.getElementById('expense-cost').value);
+            const buyer = document.getElementById('expense-buyer').value || 'Family';
+            state.expenses.push({ id: 'exp_' + Date.now(), recipientId, item, cost, buyer });
+            saveAndRender();
+            document.getElementById('expense-modal').classList.add('hidden');
+            e.target.reset();
+        }
+
+        function deleteRecipient(id) {
+            if (confirm("Delete this person and their expenses?")) {
+                state.recipients = state.recipients.filter(r => r.id !== id);
+                state.expenses = state.expenses.filter(e => e.recipientId !== id);
+                saveAndRender();
             }
-            document.getElementById('settings-modal').classList.remove('hidden');
-        };
-        window.closeModals = () => {
-            document.querySelectorAll('[id$="-modal"]').forEach(m => m.classList.add('hidden'));
-        };
+        }
 
-        window.openAddRecipientModal = () => document.getElementById('recipient-modal').classList.remove('hidden');
-        windo
+        function deleteExpense(id) {
+            state.expenses = state.expenses.filter(e => e.id !== id);
+            saveAndRender();
+        }
+
+        // Run render on load
+        render();
+    </script>
+</body>
+</html>
