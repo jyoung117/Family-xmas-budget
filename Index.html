@@ -20,7 +20,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight">Xmas Budget</h1>
-                    <p class="text-xs text-slate-400" id="sync-status">Local Storage Mode</p>
+                    <p class="text-xs text-slate-400" id="sync-status">Connecting...</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2">
@@ -158,25 +158,78 @@
         </div>
     </div>
 
-    <!-- Core App Logic -->
-    <script>
-        let state = {
-            recipients: JSON.parse(localStorage.getItem('xmas_recipients')) || [
+    <!-- Cloud-Enabled App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        let db = null;
+        let useFirebase = false;
+        let state = { recipients: [], expenses: [] };
+
+        // Check if config exists in localStorage
+        const savedConfig = localStorage.getItem('xmas_fb_config');
+        if (savedConfig) {
+            try {
+                const config = JSON.parse(savedConfig);
+                initFirebase(config);
+            } catch(e) { loadLocalFallback(); }
+        } else {
+            loadLocalFallback();
+        }
+
+        function initFirebase(config) {
+            try {
+                const app = initializeApp(config);
+                db = getFirestore(app);
+                useFirebase = true;
+                document.getElementById('sync-status').innerText = "Cloud Sync Active";
+                document.getElementById('sync-status').className = "text-xs text-emerald-400 font-semibold";
+
+                // Real-time listener for recipients
+                onSnapshot(collection(db, "recipients"), (snapshot) => {
+                    state.recipients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    render();
+                }, (error) => {
+                    console.error(error);
+                });
+
+                // Real-time listener for expenses
+                onSnapshot(collection(db, "expenses"), (snapshot) => {
+                    state.expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    render();
+                }, (error) => {
+                    console.error(error);
+                });
+            } catch(e) {
+                alert("Firebase connection failed. Check your keys.");
+                loadLocalFallback();
+            }
+        }
+
+        function loadLocalFallback() {
+            useFirebase = false;
+            document.getElementById('sync-status').innerText = "Local Storage Mode";
+            document.getElementById('sync-status').className = "text-xs text-slate-400";
+            state.recipients = JSON.parse(localStorage.getItem('xmas_recipients')) || [
                 { id: '1', name: 'Daughter', budget: 150 },
                 { id: '2', name: 'Sister-in-Law', budget: 50 }
-            ],
-            expenses: JSON.parse(localStorage.getItem('xmas_expenses')) || [
+            ];
+            state.expenses = JSON.parse(localStorage.getItem('xmas_expenses')) || [
                 { id: 'e1', recipientId: '1', item: 'Lego Set', cost: 45.00, buyer: 'Dad' }
-            ]
-        };
-
-        function saveAndRender() {
-            localStorage.setItem('xmas_recipients', JSON.stringify(state.recipients));
-            localStorage.setItem('xmas_expenses', JSON.stringify(state.expenses));
+            ];
             render();
         }
 
-        function render() {
+        function saveLocalData() {
+            if (!useFirebase) {
+                localStorage.setItem('xmas_recipients', JSON.stringify(state.recipients));
+                localStorage.setItem('xmas_expenses', JSON.stringify(state.expenses));
+                render();
+            }
+        }
+
+        window.render = function() {
             const container = document.getElementById('recipients-container');
             container.innerHTML = '';
 
@@ -223,7 +276,7 @@
                             <div class="flex justify-between items-center bg-slate-900/60 px-3 py-2 rounded-xl text-xs">
                                 <div>
                                     <span class="font-medium text-slate-200">${exp.item}</span>
-                                    <span class="text-[10px] text-slate-400 ml-1">(${exp.buyer})</span>
+                                    <span class="text-[10px] text-slate-400 ml-1">(${exp.buyer || 'Family'})</span>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <span class="font-bold text-white">$${Number(exp.cost).toFixed(2)}</span>
@@ -249,11 +302,11 @@
 
             document.getElementById('total-budget-display').innerText = `$${totalBudget.toFixed(2)}`;
             document.getElementById('total-spent-display').innerText = `$${totalSpent.toFixed(2)}`;
-        }
+        };
 
-        function openAddRecipientModal() { document.getElementById('recipient-modal').classList.remove('hidden'); }
-        function openPwaModal() { document.getElementById('pwa-modal').classList.remove('hidden'); }
-        function openSettingsModal() { 
+        window.openAddRecipientModal = () => document.getElementById('recipient-modal').classList.remove('hidden');
+        window.openPwaModal = () => document.getElementById('pwa-modal').classList.remove('hidden');
+        window.openSettingsModal = () => {
             const saved = localStorage.getItem('xmas_fb_config');
             if (saved) {
                 try {
@@ -264,72 +317,35 @@
                     document.getElementById('cfg-appid').value = c.appId || '';
                 } catch(e) {}
             }
-            document.getElementById('settings-modal').classList.remove('hidden'); 
-        }
-        function closeModals() { document.querySelectorAll('[id$="-modal"]').forEach(m => m.classList.add('hidden')); }
-        
-        function openAddExpenseModal(id, name) {
+            document.getElementById('settings-modal').classList.remove('hidden');
+        };
+        window.closeModals = () => document.querySelectorAll('[id$="-modal"]').forEach(m => m.classList.add('hidden'));
+        window.openAddExpenseModal = (id, name) => {
             document.getElementById('expense-recipient-id').value = id;
             document.getElementById('expense-modal-subtitle').innerText = `For ${name}`;
             document.getElementById('expense-modal').classList.remove('hidden');
-        }
+        };
 
-        function handleSaveRecipient(e) {
+        window.handleSaveRecipient = async function(e) {
             e.preventDefault();
             const name = document.getElementById('recipient-name').value;
             const budget = parseFloat(document.getElementById('recipient-budget').value);
-            state.recipients.push({ id: 'rec_' + Date.now(), name, budget });
-            saveAndRender();
-            document.getElementById('recipient-modal').classList.add('hidden');
-            e.target.reset();
-        }
 
-        function handleSaveExpense(e) {
+            if (useFirebase) {
+                await addDoc(collection(db, "recipients"), { name, budget });
+            } else {
+                state.recipients.push({ id: 'rec_' + Date.now(), name, budget });
+                saveLocalData();
+            }
+            document.getElementById('recipient-form').reset();
+            closeModals();
+        };
+
+        window.handleSaveExpense = async function(e) {
             e.preventDefault();
             const recipientId = document.getElementById('expense-recipient-id').value;
             const item = document.getElementById('expense-item').value;
             const cost = parseFloat(document.getElementById('expense-cost').value);
             const buyer = document.getElementById('expense-buyer').value || 'Family';
-            state.expenses.push({ id: 'exp_' + Date.now(), recipientId, item, cost, buyer });
-            saveAndRender();
-            document.getElementById('expense-modal').classList.add('hidden');
-            e.target.reset();
-        }
 
-        function deleteRecipient(id) {
-            if (confirm("Delete this person and their expenses?")) {
-                state.recipients = state.recipients.filter(r => r.id !== id);
-                state.expenses = state.expenses.filter(e => e.recipientId !== id);
-                saveAndRender();
-            }
-        }
-
-        function deleteExpense(id) {
-            state.expenses = state.expenses.filter(e => e.id !== id);
-            saveAndRender();
-        }
-
-        function handleSaveSettings(e) {
-            e.preventDefault();
-            const config = {
-                apiKey: document.getElementById('cfg-apikey').value.trim(),
-                authDomain: document.getElementById('cfg-authdomain').value.trim(),
-                projectId: document.getElementById('cfg-projectid').value.trim(),
-                appId: document.getElementById('cfg-appid').value.trim()
-            };
-            localStorage.setItem('xmas_fb_config', JSON.stringify(config));
-            alert("Settings saved! (Note: Cloud sync requires active Firebase integration modules, but your local settings are saved).");
-            closeModals();
-        }
-
-        function clearFirebaseConfig() {
-            localStorage.removeItem('xmas_fb_config');
-            alert("Cleared settings.");
-            closeModals();
-        }
-
-        // Run render on load
-        render();
-    </script>
-</body>
-</html>
+            if (useFirebase) {
