@@ -63,9 +63,10 @@
         <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-5 shadow-2xl">
             <h3 class="text-lg font-bold mb-4 flex items-center space-x-2">
                 <i class="fa-solid fa-user text-red-500"></i>
-                <span>Add Recipient</span>
+                <span id="recipient-modal-title">Add Recipient</span>
             </h3>
             <form onsubmit="handleSaveRecipient(event)" class="space-y-4">
+                <input type="hidden" id="recipient-id">
                 <div>
                     <label class="block text-xs uppercase font-bold text-slate-400 mb-1">Name</label>
                     <input type="text" id="recipient-name" required placeholder="e.g. Daughter" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-red-500">
@@ -195,6 +196,20 @@
 
         // ---------- Modals ----------
         function openAddRecipientModal() {
+            document.getElementById('recipient-id').value = '';
+            document.getElementById('recipient-name').value = '';
+            document.getElementById('recipient-budget').value = '';
+            document.getElementById('recipient-modal-title').innerText = 'Add Recipient';
+            document.getElementById('recipient-modal').classList.remove('hidden');
+        }
+
+        function openEditRecipientModal(id) {
+            const rec = state.recipients.find(r => r.id === id);
+            if (!rec) return;
+            document.getElementById('recipient-id').value = rec.id;
+            document.getElementById('recipient-name').value = rec.name || '';
+            document.getElementById('recipient-budget').value = Number(rec.budget) || 0;
+            document.getElementById('recipient-modal-title').innerText = 'Edit Recipient';
             document.getElementById('recipient-modal').classList.remove('hidden');
         }
 
@@ -411,6 +426,7 @@
                             <button data-action="add-gift" data-id="${recId}" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1">
                                 <i class="fa-solid fa-plus text-[10px]"></i><span>Add Gift</span>
                             </button>
+                            <button data-action="edit-recipient" data-id="${recId}" title="Edit name / budget" class="bg-slate-700/50 hover:bg-slate-600 text-slate-400 hover:text-white px-3 py-2 rounded-xl text-xs"><i class="fa-solid fa-pen"></i></button>
                             <button data-action="delete-recipient" data-id="${recId}" class="bg-slate-700/50 hover:bg-red-900/40 text-slate-400 hover:text-red-300 px-3 py-2 rounded-xl text-xs"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
@@ -429,6 +445,7 @@
             const id = btn.dataset.id;
             if (btn.dataset.action === 'add-gift') openAddExpenseModal(id);
             if (btn.dataset.action === 'delete-expense') deleteExpense(id);
+            if (btn.dataset.action === 'edit-recipient') openEditRecipientModal(id);
             if (btn.dataset.action === 'delete-recipient') deleteRecipient(id);
         });
 
@@ -436,12 +453,22 @@
         async function handleSaveRecipient(e) {
             e.preventDefault();
             const form = e.target;
+            const id = document.getElementById('recipient-id').value;
             const name = document.getElementById('recipient-name').value.trim();
             const budget = parseFloat(document.getElementById('recipient-budget').value) || 0;
             if (!name) return;
 
             try {
-                if (useFirebase) {
+                if (id) {
+                    // Editing an existing person
+                    if (useFirebase) {
+                        await fs.updateDoc(fs.doc(db, 'recipients', id), { name, budget });
+                    } else {
+                        const rec = state.recipients.find(r => r.id === id);
+                        if (rec) { rec.name = name; rec.budget = budget; }
+                        saveLocalData();
+                    }
+                } else if (useFirebase) {
                     await fs.addDoc(fs.collection(db, 'recipients'), { name, budget });
                 } else {
                     state.recipients.push({ id: 'rec_' + Date.now(), name, budget });
